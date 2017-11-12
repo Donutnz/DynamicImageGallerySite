@@ -24,6 +24,12 @@ int main(){
 				com+=' ';
 				i=i+2;
 			}
+			else if(qry[i]=='('){
+				com+="\\(";
+			}
+			else if(qry[i]==')'){
+				com+="\\)";
+			}
 			else{
 				com+=qry[i];
 			}

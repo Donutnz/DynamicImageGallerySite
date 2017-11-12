@@ -1,191 +1,44 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>DynGal</title>
-</head>
-<link rel="stylesheet" href="styles.css"></link>
-<body onload="onStart()">
-<h2>Dynamic Image Gallary</h2>
-<p>Should dynamically generate a gallery from images. Should. Click an image and it's file name should be added to ./favourites.txt. All images names are available via the GET api.</p>
+	<head>
+		<title>DynGal</title>
+	</head>
+	<link rel="stylesheet" href="styles.css">
+	<body onload="onStart()" onkeydown="interpKey(event)">
 
-<div class="controls">
-	Report Mode:
-	<input type="checkbox" id="modeSwitch"></input>
-	<input type="number" id="galLen" placeholder="Number of images"></input>
-	<select id="fleSel" name="FileSelect" onchange="requestIms()"></select>
-	<button type="button" onclick="genGal()">Generate</button>
-	<button type="button" onclick="requestIms()">Refresh</button>
-</div>
+		<h2>Dynamic Image Gallary</h2>
+		<p>Should dynamically generate a gallery from images. Should. If Report Mode is on, clicking an image should add its filename ./favourites.txt. Else the image will be opened at full res in a new tab. All images names are available via the GET api.</p>
 
-<div>
-	<select id="imgSel" name="ImageSelect"></select>
-	<button type="button" onclick="showImage()">Show</button>
-</div>
+		<div class="controls">
+			<input type="number" id="galLen" placeholder="Number of images">
+			<select id="fleSel" name="FileSelect" onchange="dirChanged()"></select>
+			Randomise:
+			<input type="checkbox" id="doRandom">
+			<button type="button" onclick="genGal()">Reshuffle</button>
+			<br>
+			<input id="imgSearch" list="imgLst">
+			<datalist id="imgLst" name="ImageSelect"></datalist>
+			<button type="button" onclick="selectImg()">Show</button>
+			
+			Mode:
+			<input type="radio" name="mode" id="reportMode">Report
+			<input type="radio" name="mode" id="downloadMode">Download
+			<input type="radio" name="mode" id="zoomMode">Browse
 
-<div id="galdiv" class="gallary">
-	Nothing yet...
-	(Hint: Hit "Generate")
-</div>
+			
+		</div>
 
-<div class="controls">
-	<button type="button" onclick="genGal()">Generate</button>
-</div>
+		<div id="galdiv" class="gallary">
+			Nothing yet...
+			(Hint: Hit "Generate")
+		</div>
 
+		<div class="controls">
+			<button type="button" onclick="genGal()">Reshuffle</button>
+		</div>
 
-<script>
-var defaultURL=window.location.href;
-var reqAddr=defaultURL;
-var targ=document.getElementById("galdiv");
-var images=[];
-var defDir="./images"; //Default dir to search if one has not been selected from the dropdown.
+		<script src="/main.js"></script>
 
-//Runs on page load.
-function onStart(){
-	makeFileList();
-	requestIms();
-}
-
-function imgClicked(img){
-	if(document.getElementById("modeSwitch").checked){
-		addFaver(img);
-	}
-	else{
-		window.open(reqAddr+document.getElementById("fleSel").value+"/"+img,"_self");
-	}
-}
-
-function makeFileList(){
-	var req=new XMLHttpRequest({mozSystem:true});
-	
-	req.onreadystatechange=function(){
-		if (this.readyState == 4 && this.status == 200) {
-			var dirs=this.responseText.trim().split("\n");
-			//console.log("Len: "+dirs);
-			for(var d=0; d<dirs.length; d++){ //>
-				var opt=document.createElement("option");
-				opt.value=dirs[d];
-				opt.text=dirs[d];
-				document.getElementById("fleSel").add(opt);
-			}
-                }
-	};
-
-	req.open("GET", reqAddr+"getdirs.cgi?./images/", true);
-        req.send();
-}
-
-//Format the raw string of image names into an html friendly string then display them. 
-function imgFormat(){
-	var imCheck=new RegExp(".jpeg|.jpg|.png|.gif"); //Image type filter.
-	var formStr="";
-
-	//console.log(images);
-	var maxSize=20;
-	if(document.getElementById("galLen").value > 0){
-		maxSize=document.getElementById("galLen").value;
-	}
-
-	var min=0;
-	var max=images.length;
-	var skips="";
-	for(var i=0; i<images.length && i < maxSize; i++){ //> This is here because of nano's code colouring. It's based on the file extension so it thinks it's html. Heh.
-		var imID=Math.floor(Math.random() * (max - min) + min);
-		//console.log("ImID: "+imID);
-		if(imCheck.test(images[imID])){
-			//Format for each image.
-			formStr+="<img onclick=\"imgClicked(\'"+images[imID]+"\')\" alt=\""+images[imID]+"\" title=\""+images[imID]+"\" src=\""+reqAddr+document.getElementById("fleSel").value+"/"+images[imID]+"\" class=\"galImg\">";
-		}
-		else{
-			console.log("Skipped: "+images[imID]);
-			skips+=images[imID]+"<br>";
-		}
-	}
-
-	//console.log(formStr);
-	if(formStr.length>0){
-		targ.innerHTML=formStr;
-	}
-	else{
-		targ.innerHTML="No images found. Other stuff found: <br>"+skips;
-	}
-
-	//makeImgList();
-}
-
-function makeImgList(){
-	var lst=document.getElementById("imgSel");
-	var imgChck=new RegExp(".jpeg|.jpg|.gif|.png");
-
-	for(var s=0; s<document.getElementById("imgSel").length; s++){ //>
-		document.getElementById("imgSel")[s]=null;
-	}
-
-	for(var i=0; i<images.length; i++){ //>
-		if(imgChck.test(images[i])){
-			var opt=document.createElement("option");
-			opt.value=images[i];
-			opt.text=images[i];
-			lst.add(opt);
-		}
-	}
-}
-
-function showImage(){
-	var img=document.getElementById("imgSel").value;
-	var imgChk=new RegExp(".jpg|.png|.jpeg|.gif");
-	if(imgChk.test(img)){
-		targ.innerHTML="<img src=\""+reqAddr+document.getElementById("fleSel").value+"/"+img+"\" class=\"mainImg\" onclick=\"imgClicked("+img+") title=\""+img+"\">";
-	}
-}
-
-//Get the images.
-function requestIms(){
-	var req=new XMLHttpRequest({mozSystem:true});
-
-	console.log("Image selection changed");
-
-	req.onreadystatechange=function(){
-		if (this.readyState == 4 && this.status == 200) {
-			images=this.responseText.trim().split("\n");
-			document.getElementById("galLen").placeholder="Max: "+images.length;
-			makeImgList();
-			console.log("Ims: "+images);
-		}
-	};
-
-	if(document.getElementById("fleSel").value==""){
-		req.open("GET", reqAddr+"getgal.cgi?"+defDir+"/", true);
-	}
-	else{
-		req.open("GET", reqAddr+"getgal.cgi?"+document.getElementById("fleSel").value+"/", true);
-	}
-
-	req.send();
-}
-
-//Generate the gallery.
-function genGal(){
-	console.log("Requested");
-	imgFormat();
-}
-
-//Click an image to write to the favourites.txt file.
-function addFaver(fv){
-	var pst=new XMLHttpRequest({mozSystem:true});
-
-	pst.open("POST", reqAddr+"faver.cgi", true);
-
-	pst.setRequestHeader("content-type", "text/plain");
-
-	pst.onreadystatechange=function(){
-		if(this.readyState==4 && this.status==200){
-			console.log("Done: "+pst.responseText);
-		}
-	};
-
-	pst.send(fv);
-}
-</script>
-<!--Written by Donutnz-->
-</body>
+		<!--Written by Donutnz-->
+	</body>
 </html>
