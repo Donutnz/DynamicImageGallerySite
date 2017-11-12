@@ -1,0 +1,5 @@
+dir=./data
+cgipat=**.cgi
+logfile=./logs/thttpd_log
+pidfile=/var/run/gal.pid
+nosymlinkcheck

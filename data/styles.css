@@ -1,0 +1,20 @@
+.galImg{
+	height:260px;
+	background-color:green;
+	vertical-align:middle;
+	float:inherit;
+}
+
+body{
+	background: pink;
+}
+
+.controls{
+	text-align:center;
+	width:100%;
+}
+
+.gallary{
+	width:100%;
+	text-align:center;
+}
