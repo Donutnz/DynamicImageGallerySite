@@ -179,7 +179,14 @@ function showImage(){
 	var img=images[curPos];
 	console.log("Show: "+img);
 	if(imgCheck.test(img)){
-		targ.innerHTML="<h3>"+img+"</h3><img src=\""+reqAddr+document.getElementById("fleSel").value+"/"+img+"\" class=\"mainImg\" onclick=\"imgClicked("+img+") title=\""+img+"\">";
+		var forStr="<h3>"+img+"</h3> ";
+		forStr+="<img ";
+		forStr+="src=\""+reqAddr+document.getElementById("fleSel").value+"/"+img+"\" ";
+		forStr+="class=\"mainImg\" ";
+		forStr+="onclick=\"imgClicked(\'"+img+"\')\" ";
+		forStr+="title=\""+img+"\"";
+		forStr+=">";
+		targ.innerHTML=forStr;
 	}
 }
 
